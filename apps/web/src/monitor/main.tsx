@@ -31,18 +31,21 @@ function MonitorApp() {
   const link = useMonitorConnection(role, !unsupported, capture.stream);
   const media = useVideoPlayback(video, link.received);
   const online = link.signaling === 'online';
+  const captureUnavailable = !!unsupported || link.signaling === 'local-only' || link.signaling === 'taken';
 
   const status = (() => {
     if (unsupported) return unsupported;
     if (link.signaling === 'local-only') return 'O modo monitor está disponível apenas na rede local.';
     if (link.signaling === 'taken') return 'Já existe um transmissor neste servidor.';
     if (link.signaling === 'replaced') return 'Outra aba assumiu a visualização.';
+    if (!isViewer && capture.picking) return 'Aguardando a escolha da janela ou tela…';
+    if (!isViewer && !online && capture.stream) return 'Captura ativa no PC. Aguardando conexão com o servidor…';
     if (link.signaling === 'reconnecting') return 'Reconectando ao servidor…';
     if (!online) return 'Conectando ao servidor…';
     if (link.direct === 'failed') return 'A conexão direta falhou. Confira se os dois dispositivos estão na mesma rede.';
     if (link.direct === 'interrupted') return 'Conexão de vídeo interrompida. Aguardando recuperação…';
     if (!isViewer) {
-      if (!capture.stream) return capture.picking ? 'Aguardando a escolha da janela ou tela…' : 'Pronto para transmitir';
+      if (!capture.stream) return 'Pronto para transmitir';
       if (!link.session.viewerConnected) return 'Captura ativa. Aguardando o tablet…';
       return link.direct === 'connected' ? 'Transmitindo para o tablet' : 'Estabelecendo a conexão de vídeo…';
     }
@@ -88,7 +91,7 @@ function MonitorApp() {
         ) : (
           <div className="monitor-card">
             <div className="monitor-controls">
-              <button type="button" className="mode-button monitor-primary" disabled={!!unsupported || !online || capture.picking || !!capture.stream}
+              <button type="button" className="mode-button monitor-primary" disabled={captureUnavailable || capture.picking || !!capture.stream}
                 onClick={capture.chooseWindow}><Monitor size={17} /> Escolher janela ou tela</button>
               {capture.stream && <button type="button" className="mode-button" onClick={capture.stop}>
                 <Square size={16} /> Encerrar transmissão

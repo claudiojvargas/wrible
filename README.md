@@ -41,7 +41,7 @@ Nesse modo, o NestJS serve a aplicação e o WebSocket na porta **3000**. Use es
 O modo monitor espelha uma janela do PC Windows no navegador do Galaxy Tab A. Você pode continuar usando outra janela no PC enquanto o tablet exibe a janela escolhida.
 
 1. Após `npm ci`, rode `npm run dev` ou execute `npm run build` e `npm start` na raiz do Wrible.
-2. No PC, abra `http://localhost:5173/monitor/` em desenvolvimento ou `http://localhost:3000/monitor/` na versão compilada. O navegador requer `localhost` ou HTTPS para o seletor de captura. Em uma aba do Chrome ou Edge, clique em **Escolher janela ou tela**, selecione a fonte no seletor e clique em **Compartilhar**.
+2. No PC, abra `http://localhost:5173/monitor/` em desenvolvimento ou `http://localhost:3000/monitor/` na versão compilada. O navegador requer `localhost` ou HTTPS para o seletor de captura. Em uma aba do Chrome ou Edge, clique em **Escolher janela ou tela**, selecione a fonte no seletor e clique em **Compartilhar**. Se o aplicativo ainda estiver conectando ao servidor, a captura aguarda a conexão no PC.
 3. No tablet, na mesma rede Wi-Fi, abra o endereço mostrado no PC em **Abra no tablet**. Exemplo em desenvolvimento: `http://192.168.1.25:5173/monitor/?mode=watch`. Se houver várias interfaces de rede no PC, escolha a interface que corresponde ao IPv4 mostrado por `ipconfig`. Use **Iniciar visualização** se a reprodução automática estiver bloqueada e **Tela cheia** para ampliar o vídeo.
 4. O tablet pode entrar antes ou depois da captura. Recarregar a página do tablet mantém a captura ativa no PC. Para encerrar, use **Encerrar transmissão** ou o controle de compartilhamento do próprio navegador.
 
