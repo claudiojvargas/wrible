@@ -97,7 +97,7 @@ function App() {
         </div>
         <footer className="footnote">
           <span>{viewer ? 'Visualização em tempo real' : 'Mouse, toque ou caneta'}</span>
-          <span role="status">{full ? 'Limite da lousa atingido. Desfaça um traço ou limpe a lousa.' : 'Lousa compartilhada na rede local'}</span>
+          <span role="status">{full ? 'Limite da lousa atingido. Desfaça um traço ou limpe a lousa.' : 'Lousa compartilhada'}</span>
         </footer>
       </main>
 

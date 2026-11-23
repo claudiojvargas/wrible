@@ -21,7 +21,8 @@ async function bootstrap() {
 
   const web = resolve(__dirname, '../../web/dist');
   if (existsSync(resolve(web, 'index.html'))) app.useStaticAssets(web);
-  await app.listen(3000, '0.0.0.0');
+  const port = Number(process.env.PORT ?? 3000);
+  await app.listen(port, '0.0.0.0');
 }
 
 bootstrap().catch((error: unknown) => {
