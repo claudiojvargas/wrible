@@ -11,8 +11,21 @@
   border-radius: 14px;
 }
 .monitor-card { padding: clamp(14px, 3vw, 24px); background: #fefefc; }
-.monitor-primary { background: var(--green); color: #fff; }
-.monitor-primary:hover:enabled { background: #194834; }
+.mode-button.monitor-primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.mode-button.monitor-primary:hover:enabled {
+  background: #194834;
+  border-color: #194834;
+}
+.mode-button.monitor-primary:disabled {
+  background: var(--pale-green);
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 1;
+}
 .monitor-address { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
 .monitor-address h2 { margin: 0 0 8px; font-size: 15px; }
 .monitor-address p { margin: 0; color: var(--muted); }
