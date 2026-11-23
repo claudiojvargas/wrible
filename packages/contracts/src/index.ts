@@ -40,3 +40,5 @@ export type BoardEvent =
   | { type: 'clear' }
   | { type: 'notice'; code: 'capacity'; localId?: number }
   | { type: 'heartbeat' };
+
+export * from './monitor';

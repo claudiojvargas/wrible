@@ -1,0 +1,60 @@
+.monitor-app { min-height: 100vh; min-height: 100dvh; }
+.monitor-topbar { min-height: 60px; }
+.monitor-nav, .monitor-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.monitor-nav [aria-current="page"] { background: var(--pale-green); color: var(--green); }
+.monitor-workspace { width: min(100%, 1220px); margin: auto; padding: clamp(16px, 3vw, 40px); }
+.monitor-workspace h1 { margin: 0 0 15px; font-size: clamp(26px, 4vw, 42px); letter-spacing: -.05em; }
+
+.monitor-card, .monitor-stage {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.monitor-card { padding: clamp(14px, 3vw, 24px); background: #fefefc; }
+.monitor-primary { background: var(--green); color: #fff; }
+.monitor-primary:hover:enabled { background: #194834; }
+.monitor-address { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+.monitor-address h2 { margin: 0 0 8px; font-size: 15px; }
+.monitor-address p { margin: 0; color: var(--muted); }
+.monitor-address label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 14px; }
+.monitor-address select { margin-left: 6px; max-width: calc(100% - 44px); }
+.monitor-address a { color: var(--green); text-decoration: underline; overflow-wrap: anywhere; }
+
+.monitor-stage {
+  position: relative;
+  height: min(70vh, 65vw, 680px);
+  min-height: 190px;
+  background: #171d19;
+  color: #f4f6f4;
+}
+.monitor-stage video { display: block; width: 100%; height: 100%; object-fit: contain; }
+.monitor-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 12px;
+  background: #171d19;
+  text-align: center;
+}
+.monitor-overlay > svg { color: #a8c1b1; }
+.monitor-overlay p { margin: 10px 0; }
+.monitor-fullscreen { position: absolute; top: 10px; right: 10px; opacity: .95; }
+.monitor-stage.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+}
+.monitor-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 15px; margin-top: 10px; color: var(--muted); font-size: 14px; }
+@media (max-width: 430px) {
+  .monitor-nav { gap: 4px; }
+  .monitor-fullscreen span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}

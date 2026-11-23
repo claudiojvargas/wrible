@@ -1,6 +1,6 @@
 import { StrictMode, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowUpRight, Eraser, Eye, Maximize, Minimize, PenLine, Trash2, Undo2, X } from 'lucide-react';
+import { ArrowUpRight, Eraser, Eye, Maximize, Minimize, Monitor, PenLine, Trash2, Undo2, X } from 'lucide-react';
 import { BOARD, type Brush } from '@wrible/contracts';
 import { useBoard } from './use-board';
 import { useDrawing } from './use-drawing';
@@ -60,6 +60,7 @@ function App() {
             <h1>Lousa digital</h1>
             <p>{viewer ? 'Acompanhe os traços em tempo real.' : 'Desenhe e compartilhe seus traços em tempo real.'}</p>
           </div>
+          <a className="mode-button" href="/monitor/"><Monitor size={17} aria-hidden="true" /> Modo monitor</a>
         </div>
 
         {!viewer && <div className="toolbar" role="group" aria-label="Ferramentas da lousa">

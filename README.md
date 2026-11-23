@@ -36,6 +36,27 @@ npm start
 
 Nesse modo, o NestJS serve a aplicação e o WebSocket na porta **3000**. Use essa porta nos endereços do tablet e do PC e, se necessário, na regra de firewall.
 
+## Modo monitor pela rede local
+
+O modo monitor espelha uma janela do PC Windows no navegador do Galaxy Tab A. Você pode continuar usando outra janela no PC enquanto o tablet exibe a janela escolhida.
+
+1. Após `npm ci`, rode `npm run dev` ou execute `npm run build` e `npm start` na raiz do Wrible.
+2. No PC, abra `http://localhost:5173/monitor/` em desenvolvimento ou `http://localhost:3000/monitor/` na versão compilada. O navegador requer `localhost` ou HTTPS para o seletor de captura. Clique em **Escolher janela** e selecione a janela de documentação no seletor do navegador.
+3. No tablet, na mesma rede Wi-Fi, abra o endereço mostrado no PC em **Abra no tablet**. Exemplo em desenvolvimento: `http://192.168.1.25:5173/monitor/?mode=watch`. Se houver várias interfaces de rede no PC, escolha a interface que corresponde ao IPv4 mostrado por `ipconfig`. Use **Iniciar visualização** se a reprodução automática estiver bloqueada e **Tela cheia** para ampliar o vídeo.
+4. O tablet pode entrar antes ou depois da captura. Recarregar a página do tablet mantém a captura ativa no PC. Para encerrar, use **Encerrar transmissão** ou o controle de compartilhamento do próprio navegador.
+
+O NestJS encaminha somente a sinalização WebSocket de um transmissor e um espectador. O vídeo usa WebRTC diretamente na rede local, com `iceServers` vazio. O modo monitor aceita loopback e IPv4 de rede local. O Render hospeda a lousa. Para usar o monitor, execute o serviço no PC. Redes de convidados, isolamento de clientes Wi-Fi ou firewall podem impedir que o tablet alcance o PC ou que os candidatos ICE estabeleçam a conexão direta.
+
+### Verificar no Galaxy Tab A
+
+- Selecione uma janela com documentação e confirme que o texto é legível no tablet em tela cheia. Faça uma rolagem lenta e outra rápida enquanto trabalha em outra janela no PC. Anote o navegador e a resolução indicada em **Resolução recebida**.
+- Recarregue o espectador durante a captura. Confira se o vídeo volta e, em seguida, encerre pelo controle nativo do navegador do PC. O tablet deve mostrar **Transmissão encerrada**. Inicie outra captura para verificar o retorno.
+- Para medir o atraso visual, exiba um cronômetro com milissegundos na janela capturada e filme PC e tablet juntos. Em vários quadros da gravação, compare o tempo do cronômetro no PC com o tempo exibido no tablet. A diferença estima o atraso de ponta a ponta. O RTT do WebRTC mede ida e volta pela rede e não inclui todo o caminho de captura, codificação e exibição.
+
+A captura solicita 1280 × 720 a 15 fps em [`use-window-capture.ts`](apps/web/src/monitor/use-window-capture.ts). A janela selecionada e a negociação do vídeo determinam o que chega ao tablet. A resolução, a legibilidade e a fluidez precisam ser avaliadas no aparelho.
+
+Depois de `npm run build`, rode `node --test apps/server/test/monitor.cjs` para verificar a sinalização, a reconexão do espectador e a separação da lousa.
+
 ## Hospedar no Render
 
 O [`render.yaml`](render.yaml) configura um único serviço Web no plano gratuito. O mesmo serviço entrega a interface por HTTPS e sincroniza a lousa por WebSocket seguro.
