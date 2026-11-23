@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import { SOCKET_PATH, type BoardAction, type BoardEvent, type Brush, type Point } from '@wrible/contracts';
+import { SOCKET_PATH, type Brush, type ClientAction, type Point, type ServerEvent, type TextSegment } from '@wrible/contracts';
 import { BoardRenderer } from './board-renderer';
 
 type Connection = 'connecting' | 'connected' | 'reconnecting';
+
+interface RecognitionState {
+  enabled: boolean;
+  segments: TextSegment[];
+  session: number;
+  full: boolean;
+}
 
 export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: boolean) {
   const currentSocket = useRef<WebSocket | null>(null);
@@ -11,6 +18,9 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
   const [connection, setConnection] = useState<Connection>('connecting');
   const [canUndo, setCanUndo] = useState(false);
   const [full, setFull] = useState(false);
+  const [recognition, setRecognition] = useState<RecognitionState>({
+    enabled: false, segments: [], session: 0, full: false,
+  });
 
   useEffect(() => {
     if (!canvas.current) return;
@@ -47,8 +57,36 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
       monitor();
       socket.onmessage = ({ data }) => {
         if (disposed || currentSocket.current !== socket) return;
-        const event = JSON.parse(data) as BoardEvent;
+        const event = JSON.parse(data) as ServerEvent;
         monitor();
+        switch (event.type) {
+          case 'text:snapshot':
+            setRecognition(state => ({
+              enabled: event.enabled, segments: event.segments, session: state.session + 1, full: false,
+            }));
+            return;
+          case 'text:segment':
+            setRecognition(state => {
+              const segment = event.segment;
+              const known = state.segments.some(item => item.id === segment.id);
+              const segments = known
+                ? state.segments.map(item => item.id === segment.id ? segment : item)
+                : [...state.segments, segment];
+              return { ...state, segments };
+            });
+            return;
+          case 'text:remove':
+            setRecognition(state => ({
+              ...state, segments: state.segments.filter(item => item.id !== event.id), full: false,
+            }));
+            return;
+          case 'text:clear':
+            setRecognition(state => ({ ...state, segments: [], full: false }));
+            return;
+          case 'text:capacity':
+            setRecognition(state => ({ ...state, full: true }));
+            return;
+        }
         if (event.type === 'snapshot') {
           delay = 500;
           setFull(false);
@@ -80,7 +118,7 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
     };
   }, [canvas, viewer]);
 
-  const send = useCallback((action: BoardAction) => {
+  const send = useCallback((action: ClientAction) => {
     const socket = currentSocket.current;
     if (viewer || socket?.readyState !== WebSocket.OPEN) return false;
     if (socket.bufferedAmount > 1_000_000) {
@@ -91,9 +129,9 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
     return true;
   }, [viewer]);
 
-  function beginStroke(brush: Brush, point: Point): number | undefined {
+  function beginStroke(brush: Brush, point: Point, recognize: boolean): number | undefined {
     const localId = nextLocalId.current++;
-    if (!send({ type: 'begin', localId, brush, point })) return;
+    if (!send({ type: 'begin', localId, brush, point, recognize: recognize ? true : undefined })) return;
     currentRenderer.current?.beginPreview(localId, brush, point);
     return localId;
   }
@@ -102,5 +140,5 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
     currentRenderer.current?.appendPreview(localId, points);
   }
 
-  return { connection, canUndo, full, send, beginStroke, previewPoints };
+  return { connection, canUndo, full, recognition, send, beginStroke, previewPoints };
 }

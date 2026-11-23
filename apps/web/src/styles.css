@@ -126,6 +126,32 @@ a { color: inherit; text-decoration: none; }
 .board.editable { cursor: crosshair; touch-action: none; }
 .footnote { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin-top: 9px; color: var(--muted); font-size: 12px; }
 
+.text-panel {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: clamp(120px, 27dvh, 174px);
+  overflow: auto;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fefefc;
+}
+.text-panel h2 { margin: 0 0 5px; font-size: 14px; }
+.text-panel > p, .text-card-header { margin: 0; color: var(--muted); font-size: 12px; }
+.text-segments { display: flex; align-items: flex-start; flex: 1; min-height: 0; gap: 8px; overflow: auto; padding: 2px; }
+.text-card { flex: 0 0 min(100%, 350px); min-width: 0; padding: 6px; border: 1px solid var(--line); border-radius: 7px; }
+.text-card-header, .text-card-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+.text-card-header select { margin-left: 5px; }
+.text-result { display: block; width: 100%; margin: 4px 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+textarea.text-result { min-height: 2.7em; resize: vertical; padding: 5px; border: 1px solid var(--line); border-radius: 5px; font-size: 16px; }
+.text-font-sans { font-family: "Segoe UI", system-ui, sans-serif; }
+.text-font-serif { font-family: Georgia, "Noto Serif", serif; }
+.text-font-mono { font-family: Consolas, "Noto Sans Mono", monospace; }
+.text-card-actions { justify-content: flex-end; }
+.text-card-actions .tool { min-height: 34px; }
+
 .app.is-fullscreen {
   position: fixed;
   inset: 0;

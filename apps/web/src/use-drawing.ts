@@ -10,7 +10,7 @@ interface Drawing {
 }
 
 interface DrawingTransport {
-  beginStroke(brush: Brush, point: Point): number | undefined;
+  beginStroke(brush: Brush, point: Point, recognize: boolean): number | undefined;
   previewPoints(localId: number, points: Point[]): void;
   send(action: BoardAction): boolean;
 }
@@ -24,7 +24,12 @@ function point(event: PointerEvent, bounds: DOMRect, fallback = 0.5): Point {
   };
 }
 
-export function useDrawing(brush: Brush, enabled: boolean, { beginStroke, previewPoints, send }: DrawingTransport) {
+export function useDrawing(
+  brush: Brush,
+  enabled: boolean,
+  recognize: boolean,
+  { beginStroke, previewPoints, send }: DrawingTransport,
+) {
   const active = useRef<Drawing | null>(null);
 
   useEffect(() => {
@@ -55,7 +60,7 @@ export function useDrawing(brush: Brush, enabled: boolean, { beginStroke, previe
   function onPointerDown(event: ReactPointerEvent<HTMLCanvasElement>) {
     if (!enabled || active.current || event.button !== 0) return;
     const first = point(event.nativeEvent, event.currentTarget.getBoundingClientRect());
-    const localId = beginStroke(brush, first);
+    const localId = beginStroke(brush, first, recognize && brush.tool === 'pen');
     if (localId === undefined) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     active.current = { localId, pointer: event.pointerId, last: first, points: [] };

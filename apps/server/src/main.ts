@@ -7,8 +7,9 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { Board } from './board';
 import { BoardGateway } from './board.gateway';
+import { recognizerProvider, textRecognitionProvider } from './recognition/providers';
 
-@Module({ providers: [Board, BoardGateway] })
+@Module({ providers: [Board, BoardGateway, recognizerProvider, textRecognitionProvider] })
 class AppModule {}
 
 async function bootstrap() {

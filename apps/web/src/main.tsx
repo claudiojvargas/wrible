@@ -1,10 +1,11 @@
 import { StrictMode, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowUpRight, Eraser, Eye, Maximize, Minimize, PenLine, Trash2, Undo2, X } from 'lucide-react';
+import { ArrowUpRight, Eraser, Eye, Maximize, Minimize, PenLine, Trash2, Type, Undo2, X } from 'lucide-react';
 import { BOARD, type Brush } from '@wrible/contracts';
 import { useBoard } from './use-board';
 import { useDrawing } from './use-drawing';
 import { useFullscreen } from './use-fullscreen';
+import { TextPanel } from './text-panel';
 import './styles.css';
 
 const colors = [
@@ -22,10 +23,12 @@ function App() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const [brush, setBrush] = useState<Brush>({ tool: 'pen', color: colors[0][0], width: 8 });
+  const [convert, setConvert] = useState(false);
   const board = useBoard(canvas, viewer);
-  const { connection, canUndo, full, send } = board;
+  const { connection, canUndo, full, recognition, send } = board;
   const connected = connection === 'connected';
-  const drawing = useDrawing(brush, connected && !viewer, board);
+  const conversionActive = recognition.enabled && convert;
+  const drawing = useDrawing(brush, connected && !viewer, conversionActive, board);
   const { fullscreen, toggleFullscreen } = useFullscreen(app);
   const fullscreenLabel = fullscreen ? 'Sair da tela cheia' : 'Tela cheia';
   const status = { connecting: 'Conectando', connected: 'Conectado', reconnecting: 'Reconectando' };
@@ -88,6 +91,12 @@ function App() {
               onChange={(event) => setBrush({ ...brush, width: event.currentTarget.valueAsNumber })} />
             <output>{brush.width}</output>
           </label>
+          {recognition.enabled && <div className="tool-group">
+            <button type="button" className="tool" aria-pressed={conversionActive}
+              onClick={() => setConvert(active => !active)}>
+              <Type size={17} aria-hidden="true" /> <span>Converter em texto</span>
+            </button>
+          </div>}
           <div className="tool-group edit-actions">
             <button type="button" className="tool" disabled={!connected || !canUndo}
               onClick={() => send({ type: 'undo' })}>
@@ -105,6 +114,10 @@ function App() {
             aria-label={viewer ? 'Lousa compartilhada em modo visualização' : 'Área de desenho da lousa compartilhada'}
             {...drawing} />
         </div>
+        {(recognition.segments.length > 0 || conversionActive || recognition.full) && (
+          <TextPanel key={recognition.session} segments={recognition.segments} viewer={viewer}
+            connected={connected} full={recognition.full} send={send} />
+        )}
         <footer className={full ? 'footnote has-notice' : 'footnote'}>
           <span>{viewer ? 'Visualização em tempo real' : 'Mouse, toque ou caneta'}</span>
           <span role="status">{full ? 'Limite da lousa atingido. Desfaça um traço ou limpe a lousa.' : 'Lousa compartilhada'}</span>

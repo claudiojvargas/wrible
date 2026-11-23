@@ -14,6 +14,10 @@ export class Board {
     return { type: 'snapshot', strokes: [...this.strokes.values()] };
   }
 
+  getStroke(id: number): Stroke | undefined {
+    return this.strokes.get(id);
+  }
+
   apply(client: number, action: BoardAction): BoardEvent | undefined {
     const active = this.active.get(client);
     switch (action.type) {

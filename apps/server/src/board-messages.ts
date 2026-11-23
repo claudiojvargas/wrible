@@ -1,4 +1,4 @@
-import { BOARD, type BoardAction, type Brush, type Point } from '@wrible/contracts';
+import { BOARD, MAX_TEXT_LENGTH, TEXT_FONTS, type Brush, type ClientAction, type Point } from '@wrible/contracts';
 
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -25,7 +25,11 @@ function brush(value: unknown): Brush | undefined {
   }
 }
 
-export function parseAction(json: string): BoardAction | undefined {
+function identifier(value: unknown): value is number {
+  return between(value, 1, Number.MAX_SAFE_INTEGER) && Number.isInteger(value);
+}
+
+export function parseAction(json: string): ClientAction | undefined {
   let value: unknown;
   try {
     value = JSON.parse(json);
@@ -38,11 +42,11 @@ export function parseAction(json: string): BoardAction | undefined {
     case 'begin': {
       const validBrush = brush(value.brush);
       const validPoint = point(value.point);
-      const { localId } = value;
+      const { localId, recognize } = value;
       if (!validBrush || !validPoint) return;
-      if (localId === undefined) return { type: 'begin', brush: validBrush, point: validPoint };
-      if (!between(localId, 1, Number.MAX_SAFE_INTEGER) || !Number.isInteger(localId)) return;
-      return { type: 'begin', brush: validBrush, point: validPoint, localId };
+      if (localId !== undefined && !identifier(localId)) return;
+      if (recognize !== undefined && recognize !== true) return;
+      return { type: 'begin', brush: validBrush, point: validPoint, localId, recognize };
     }
     case 'points': {
       if (!Array.isArray(value.points) || !value.points.length || value.points.length > BOARD.maxBatch) return;
@@ -58,5 +62,17 @@ export function parseAction(json: string): BoardAction | undefined {
     case 'undo':
     case 'clear':
       return { type: value.type };
+    case 'text:confirm':
+      if (identifier(value.id) && typeof value.text === 'string' && value.text.length <= MAX_TEXT_LENGTH && value.text.trim()) {
+        return { type: value.type, id: value.id, text: value.text.trim() };
+      }
+      return;
+    case 'text:font': {
+      const font = TEXT_FONTS.find(option => option === value.font);
+      if (identifier(value.id) && font) return { type: value.type, id: value.id, font };
+      return;
+    }
+    case 'text:remove':
+      if (identifier(value.id)) return { type: value.type, id: value.id };
   }
 }
