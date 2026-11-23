@@ -11,6 +11,16 @@
   border-radius: 14px;
 }
 .monitor-card { padding: clamp(14px, 3vw, 24px); background: #fefefc; }
+.monitor-hint, .monitor-preview p { color: var(--muted); font-size: 14px; }
+.monitor-preview { margin-top: 16px; }
+.monitor-preview video {
+  display: block;
+  width: min(100%, 640px);
+  max-height: 42vh;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #171d19;
+}
 .mode-button.monitor-primary {
   background: var(--green);
   border-color: var(--green);

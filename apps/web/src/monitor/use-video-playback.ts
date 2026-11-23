@@ -24,11 +24,10 @@ export function useVideoPlayback(video: RefObject<HTMLVideoElement | null>, stre
   }, [video]);
 
   useEffect(() => {
-    const element = video.current;
-    if (!element) return;
     setFeedback(null);
     setResolution('');
-    if (!stream) return;
+    const element = video.current;
+    if (!element || !stream) return;
 
     element.srcObject = stream;
     play();

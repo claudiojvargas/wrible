@@ -60,7 +60,7 @@ function App() {
             <h1>Lousa digital</h1>
             <p>{viewer ? 'Acompanhe os traços em tempo real.' : 'Desenhe e compartilhe seus traços em tempo real.'}</p>
           </div>
-          <a className="mode-button" href="/monitor/"><Monitor size={17} aria-hidden="true" /> Modo monitor</a>
+          <a className="mode-button" href="/monitor/?mode=extend"><Monitor size={17} aria-hidden="true" /> Monitor estendido</a>
         </div>
 
         {!viewer && <div className="toolbar" role="group" aria-label="Ferramentas da lousa">
