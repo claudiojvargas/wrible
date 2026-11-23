@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import { SOCKET_PATH, type BoardAction, type BoardEvent } from '@wrible/contracts';
+import { SOCKET_PATH, type BoardAction, type BoardEvent, type Brush, type Point } from '@wrible/contracts';
 import { BoardRenderer } from './board-renderer';
 
 type Connection = 'connecting' | 'connected' | 'reconnecting';
 
 export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: boolean) {
   const currentSocket = useRef<WebSocket | null>(null);
+  const currentRenderer = useRef<BoardRenderer | null>(null);
+  const nextLocalId = useRef(1);
   const [connection, setConnection] = useState<Connection>('connecting');
   const [canUndo, setCanUndo] = useState(false);
   const [full, setFull] = useState(false);
@@ -13,6 +15,7 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
   useEffect(() => {
     if (!canvas.current) return;
     const renderer = new BoardRenderer(canvas.current);
+    currentRenderer.current = renderer;
     let disposed = false;
     let retry: ReturnType<typeof setTimeout>;
     let watchdog: ReturnType<typeof setTimeout>;
@@ -30,6 +33,7 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
         currentSocket.current = null;
         clearTimeout(watchdog);
         socket.close();
+        renderer.discardPreviews();
         setConnection('reconnecting');
         retry = setTimeout(connect, delay);
         delay = Math.min(delay * 2, 5_000);
@@ -52,9 +56,9 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
         }
         if (event.type === 'notice') setFull(true);
         if (event.type === 'remove' || event.type === 'clear') setFull(false);
-        if (event.type === 'begin' || event.type === 'points') {
+        if (event.type === 'begin' || event.type === 'points' || event.type === 'notice') {
           renderer.update(event);
-        } else if (event.type !== 'heartbeat' && event.type !== 'notice') {
+        } else if (event.type !== 'heartbeat') {
           setCanUndo(renderer.update(event));
         }
       };
@@ -71,6 +75,7 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
       window.removeEventListener('offline', offline);
       currentSocket.current?.close();
       currentSocket.current = null;
+      currentRenderer.current = null;
       renderer.dispose();
     };
   }, [canvas, viewer]);
@@ -86,5 +91,16 @@ export function useBoard(canvas: RefObject<HTMLCanvasElement | null>, viewer: bo
     return true;
   }, [viewer]);
 
-  return { connection, canUndo, full, send };
+  function beginStroke(brush: Brush, point: Point): number | undefined {
+    const localId = nextLocalId.current++;
+    if (!send({ type: 'begin', localId, brush, point })) return;
+    currentRenderer.current?.beginPreview(localId, brush, point);
+    return localId;
+  }
+
+  function previewPoints(localId: number, points: Point[]) {
+    currentRenderer.current?.appendPreview(localId, points);
+  }
+
+  return { connection, canUndo, full, send, beginStroke, previewPoints };
 }

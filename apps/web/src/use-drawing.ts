@@ -2,10 +2,17 @@ import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react
 import { BOARD, type BoardAction, type Brush, type Point } from '@wrible/contracts';
 
 interface Drawing {
+  localId: number;
   pointer: number;
   last: Point;
   points: Point[];
   frame?: number;
+}
+
+interface DrawingTransport {
+  beginStroke(brush: Brush, point: Point): number | undefined;
+  previewPoints(localId: number, points: Point[]): void;
+  send(action: BoardAction): boolean;
 }
 
 function point(event: PointerEvent, bounds: DOMRect, fallback = 0.5): Point {
@@ -17,7 +24,7 @@ function point(event: PointerEvent, bounds: DOMRect, fallback = 0.5): Point {
   };
 }
 
-export function useDrawing(brush: Brush, enabled: boolean, send: (action: BoardAction) => boolean) {
+export function useDrawing(brush: Brush, enabled: boolean, { beginStroke, previewPoints, send }: DrawingTransport) {
   const active = useRef<Drawing | null>(null);
 
   useEffect(() => {
@@ -39,17 +46,19 @@ export function useDrawing(brush: Brush, enabled: boolean, send: (action: BoardA
 
   function append(drawing: Drawing, next: Point) {
     const { last } = drawing;
-    if (last.x === next.x && last.y === next.y && last.pressure === next.pressure) return;
+    if (last.x === next.x && last.y === next.y && last.pressure === next.pressure) return false;
     drawing.last = next;
     drawing.points.push(next);
+    return true;
   }
 
   function onPointerDown(event: ReactPointerEvent<HTMLCanvasElement>) {
     if (!enabled || active.current || event.button !== 0) return;
     const first = point(event.nativeEvent, event.currentTarget.getBoundingClientRect());
-    if (!send({ type: 'begin', brush, point: first })) return;
+    const localId = beginStroke(brush, first);
+    if (localId === undefined) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    active.current = { pointer: event.pointerId, last: first, points: [] };
+    active.current = { localId, pointer: event.pointerId, last: first, points: [] };
   }
 
   function onPointerMove(event: ReactPointerEvent<HTMLCanvasElement>) {
@@ -57,9 +66,11 @@ export function useDrawing(brush: Brush, enabled: boolean, send: (action: BoardA
     if (!drawing || drawing.pointer !== event.pointerId) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const samples = event.nativeEvent.getCoalescedEvents?.();
+    const offset = drawing.points.length;
     for (const sample of samples?.length ? samples : [event.nativeEvent]) {
       append(drawing, point(sample, bounds));
     }
+    if (drawing.points.length > offset) previewPoints(drawing.localId, drawing.points.slice(offset));
     if (drawing.points.length && drawing.frame === undefined) {
       drawing.frame = requestAnimationFrame(() => flush(drawing));
     }
@@ -69,7 +80,8 @@ export function useDrawing(brush: Brush, enabled: boolean, send: (action: BoardA
     const drawing = active.current;
     if (!drawing || drawing.pointer !== event.pointerId) return;
     if (event.type === 'pointerup') {
-      append(drawing, point(event.nativeEvent, event.currentTarget.getBoundingClientRect(), drawing.last.pressure));
+      const last = point(event.nativeEvent, event.currentTarget.getBoundingClientRect(), drawing.last.pressure);
+      if (append(drawing, last)) previewPoints(drawing.localId, [last]);
     }
     active.current = null;
     flush(drawing);

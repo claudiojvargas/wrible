@@ -1,4 +1,11 @@
-import { BOARD, type BoardEvent, type Point, type Stroke } from '@wrible/contracts';
+import { BOARD, type BoardEvent, type Brush, type Point, type Stroke } from '@wrible/contracts';
+
+type Ink = Pick<Stroke, 'brush' | 'points'>;
+
+interface Preview extends Ink {
+  localId: number;
+  strokeId?: number;
+}
 
 export class BoardRenderer {
   private readonly cache = document.createElement('canvas');
@@ -8,6 +15,8 @@ export class BoardRenderer {
   private readonly surface: HTMLElement;
   private readonly strokes = new Map<number, Stroke>();
   private readonly pending = new Set<Stroke>();
+  private readonly previews = new Map<number, Preview>();
+  private readonly confirmedPreviews = new Map<number, Preview>();
   private frame: number | undefined;
   private scale = 0;
   private resolution = 0;
@@ -22,9 +31,31 @@ export class BoardRenderer {
     window.addEventListener('resize', this.schedule);
   }
 
+  beginPreview(localId: number, brush: Brush, point: Point) {
+    this.previews.set(localId, { localId, brush, points: [point] });
+    this.schedule();
+  }
+
+  appendPreview(localId: number, points: Point[]) {
+    const preview = this.previews.get(localId);
+    if (!preview) return;
+    for (const point of points) preview.points.push(point);
+    this.schedule();
+  }
+
+  discardPreviews() {
+    if (!this.previews.size) return;
+    this.previews.clear();
+    this.confirmedPreviews.clear();
+    this.resetCache();
+    this.schedule();
+  }
+
   update(event: BoardEvent): boolean {
     switch (event.type) {
       case 'snapshot':
+        this.previews.clear();
+        this.confirmedPreviews.clear();
         this.strokes.clear();
         this.completeCount = 0;
         for (const stroke of event.strokes) {
@@ -33,10 +64,16 @@ export class BoardRenderer {
         }
         this.resetCache();
         break;
-      case 'begin':
+      case 'begin': {
+        const preview = event.localId === undefined ? undefined : this.previews.get(event.localId);
+        if (preview) {
+          preview.strokeId = event.stroke.id;
+          this.confirmedPreviews.set(event.stroke.id, preview);
+        }
         this.strokes.set(event.stroke.id, event.stroke);
         this.pending.add(event.stroke);
         break;
+      }
       case 'points':
         this.strokes.get(event.id)?.points.push(...event.points);
         break;
@@ -45,6 +82,12 @@ export class BoardRenderer {
         if (stroke && !stroke.complete) {
           stroke.complete = true;
           this.completeCount++;
+          const preview = this.confirmedPreviews.get(event.id);
+          if (preview) {
+            this.confirmedPreviews.delete(event.id);
+            this.previews.delete(preview.localId);
+            if (preview.points.length !== stroke.points.length) this.resetCache();
+          }
         }
         break;
       }
@@ -53,9 +96,15 @@ export class BoardRenderer {
         this.resetCache();
         break;
       case 'clear':
+        // Pending begins may still be accepted after this clear.
+        for (const preview of this.confirmedPreviews.values()) this.previews.delete(preview.localId);
+        this.confirmedPreviews.clear();
         this.strokes.clear();
         this.completeCount = 0;
         this.resetCache();
+        break;
+      case 'notice':
+        if (event.localId !== undefined) this.previews.delete(event.localId);
         break;
       default:
         return this.completeCount > 0;
@@ -101,8 +150,9 @@ export class BoardRenderer {
 
     // Append points through the first active stroke. Later strokes must remain above it.
     for (const stroke of this.pending) {
-      drawStroke(this.cacheContext, stroke, this.resolution, this.cachedPoints);
-      this.cachedPoints = stroke.points.length;
+      const ink = this.confirmedPreviews.get(stroke.id) ?? stroke;
+      drawStroke(this.cacheContext, ink, this.resolution, this.cachedPoints);
+      this.cachedPoints = ink.points.length;
       if (!stroke.complete) break;
       this.cachedPoints = 0;
       this.pending.delete(stroke);
@@ -113,13 +163,16 @@ export class BoardRenderer {
     this.context.drawImage(this.cache, 0, 0);
     let first = true;
     for (const stroke of this.pending) {
-      if (!first) drawStroke(this.context, stroke, this.resolution);
+      if (!first) drawStroke(this.context, this.confirmedPreviews.get(stroke.id) ?? stroke, this.resolution);
       first = false;
+    }
+    for (const preview of this.previews.values()) {
+      if (preview.strokeId === undefined) drawStroke(this.context, preview, this.resolution);
     }
   };
 }
 
-function drawStroke(ctx: CanvasRenderingContext2D, { brush, points }: Stroke, scale: number, start = 0) {
+function drawStroke(ctx: CanvasRenderingContext2D, { brush, points }: Ink, scale: number, start = 0) {
   if (start === points.length) return;
   const { width, height } = ctx.canvas;
   const size = (point: Point) => brush.width * scale * (0.35 + 1.3 * point.pressure);

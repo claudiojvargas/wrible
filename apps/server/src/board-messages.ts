@@ -38,8 +38,11 @@ export function parseAction(json: string): BoardAction | undefined {
     case 'begin': {
       const validBrush = brush(value.brush);
       const validPoint = point(value.point);
-      if (validBrush && validPoint) return { type: 'begin', brush: validBrush, point: validPoint };
-      return;
+      const { localId } = value;
+      if (!validBrush || !validPoint) return;
+      if (localId === undefined) return { type: 'begin', brush: validBrush, point: validPoint };
+      if (!between(localId, 1, Number.MAX_SAFE_INTEGER) || !Number.isInteger(localId)) return;
+      return { type: 'begin', brush: validBrush, point: validPoint, localId };
     }
     case 'points': {
       if (!Array.isArray(value.points) || !value.points.length || value.points.length > BOARD.maxBatch) return;

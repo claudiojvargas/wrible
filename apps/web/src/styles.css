@@ -51,6 +51,7 @@ a { color: inherit; text-decoration: none; }
   text-align: center;
 }
 .mode-button:hover { background: var(--pale-green); }
+.fullscreen-button { white-space: nowrap; min-width: 38px; }
 .external { color: var(--muted); }
 
 .workspace {
@@ -125,6 +126,20 @@ a { color: inherit; text-decoration: none; }
 .board.editable { cursor: crosshair; touch-action: none; }
 .footnote { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin-top: 9px; color: var(--muted); font-size: 12px; }
 
+.app.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  min-height: 0;
+  overflow: auto;
+  background: #f7f7f4;
+}
+.is-fullscreen .topbar { flex-shrink: 0; min-height: 0; padding: 5px 12px; }
+.is-fullscreen .workspace { width: 100%; min-height: 0; padding: 6px; }
+.is-fullscreen .heading, .is-fullscreen .footnote:not(.has-notice) { display: none; }
+.is-fullscreen .toolbar { margin-bottom: 6px; }
+.is-fullscreen .surface { min-height: 100px; }
+
 dialog { width: min(390px, calc(100% - 30px)); padding: 20px; border: 1px solid var(--line); border-radius: 14px; color: inherit; }
 dialog::backdrop { background: #17271e65; }
 .dialog-heading, .dialog-actions { display: flex; align-items: center; gap: 10px; }
@@ -139,6 +154,7 @@ dialog p { color: var(--muted); margin: 2px 0 20px; }
   .toolbar { gap: 2px 5px; }
   .tool-group + .tool-group { padding-left: 5px; }
   .external { display: none; }
+  .fullscreen-button span { display: none; }
 }
 @media (max-width: 430px) {
   .topbar { min-height: 59px; }

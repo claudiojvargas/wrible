@@ -49,6 +49,8 @@ O Render fornece a porta em `PORT` e verifica o serviço em `/api/health`. Depoi
 
 ## Uso e limitações
 
+- Use **Tela cheia** na edição ou na visualização para ampliar a lousa. **Sair da tela cheia** restaura a página. Se o navegador bloquear o modo nativo, a lousa ocupa a área disponível da página.
+- O editor desenha na própria tela assim que recebe os movimentos da caneta. A atualização das outras telas continua sujeita à latência da rede.
 - Use mouse, toque ou S Pen na área branca da lousa. A pressão altera a espessura quando o navegador reporta valores de pressão através de Pointer Events. Chrome atualizado é o navegador recomendado. Se a caneta reportar valor fixo ou se a pressão não estiver disponível, o traço terá espessura constante. A disponibilidade pode variar com o dispositivo, o Android e o navegador. No acesso por HTTP local, o aplicativo usa eventos comuns quando as amostras agrupadas do navegador estão indisponíveis.
 - Cores, espessura e borracha são locais ao editor. **Desfazer** remove o último traço concluído da lousa compartilhada, inclusive marcas de borracha. **Limpar** apaga os traços para todos. A lousa mantém uma proporção de 8:5 em qualquer tela.
 - Durante uma queda de conexão, a última imagem fica visível e a interface reconecta automaticamente. O servidor preserva o trecho recebido de um traço interrompido. Os movimentos feitos sem conexão não são enviados depois.

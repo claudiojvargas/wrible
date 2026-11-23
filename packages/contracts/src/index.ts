@@ -28,15 +28,15 @@ export interface Stroke {
 }
 
 export type BoardAction =
-  | { type: 'begin'; brush: Brush; point: Point }
+  | { type: 'begin'; brush: Brush; point: Point; localId?: number }
   | { type: 'points'; points: Point[] }
   | { type: 'end' | 'undo' | 'clear' };
 
 export type BoardEvent =
   | { type: 'snapshot'; strokes: Stroke[] }
-  | { type: 'begin'; stroke: Stroke }
+  | { type: 'begin'; stroke: Stroke; localId?: number }
   | { type: 'points'; id: number; points: Point[] }
   | { type: 'end' | 'remove'; id: number }
   | { type: 'clear' }
-  | { type: 'notice'; code: 'capacity' }
+  | { type: 'notice'; code: 'capacity'; localId?: number }
   | { type: 'heartbeat' };

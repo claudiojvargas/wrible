@@ -47,8 +47,12 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect, O
       const action = parseAction(data.toString());
       if (!action) return;
       const event = this.board.apply(client.id, action);
+      const localId = action.type === 'begin' ? action.localId : undefined;
       if (event?.type === 'notice') {
-        this.send(socket, JSON.stringify(event));
+        this.send(socket, JSON.stringify({ ...event, localId }));
+      } else if (event?.type === 'begin' && localId !== undefined) {
+        this.send(socket, JSON.stringify({ ...event, localId }));
+        this.broadcast(event, socket);
       } else {
         this.broadcast(event);
       }
@@ -67,10 +71,12 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect, O
     for (const socket of this.clients.keys()) socket.terminate();
   }
 
-  private broadcast(event: BoardEvent | undefined) {
+  private broadcast(event: BoardEvent | undefined, except?: WebSocket) {
     if (!event) return;
     const message = JSON.stringify(event);
-    for (const socket of this.clients.keys()) this.send(socket, message);
+    for (const socket of this.clients.keys()) {
+      if (socket !== except) this.send(socket, message);
+    }
   }
 
   private send(socket: WebSocket, message: string) {
