@@ -1,0 +1,17 @@
+{
+  "name": "wrible",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": { "node": ">=22.12" },
+  "scripts": {
+    "predev": "npm run build -w @wrible/contracts",
+    "dev": "concurrently -k -n server,web \"npm run dev -w @wrible/server\" \"npm run dev -w @wrible/web\"",
+    "build": "npm run build -w @wrible/contracts && npm run build -w @wrible/server && npm run build -w @wrible/web",
+    "start": "npm run start -w @wrible/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "~5.9.3"
+  }
+}
