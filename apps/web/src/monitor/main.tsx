@@ -42,7 +42,7 @@ function MonitorApp() {
     if (link.direct === 'failed') return 'A conexão direta falhou. Confira se os dois dispositivos estão na mesma rede.';
     if (link.direct === 'interrupted') return 'Conexão de vídeo interrompida. Aguardando recuperação…';
     if (!isViewer) {
-      if (!capture.stream) return capture.picking ? 'Aguardando a escolha da janela…' : 'Pronto para transmitir';
+      if (!capture.stream) return capture.picking ? 'Aguardando a escolha da janela ou tela…' : 'Pronto para transmitir';
       if (!link.session.viewerConnected) return 'Captura ativa. Aguardando o tablet…';
       return link.direct === 'connected' ? 'Transmitindo para o tablet' : 'Estabelecendo a conexão de vídeo…';
     }
@@ -89,7 +89,7 @@ function MonitorApp() {
           <div className="monitor-card">
             <div className="monitor-controls">
               <button type="button" className="mode-button monitor-primary" disabled={!!unsupported || !online || capture.picking || !!capture.stream}
-                onClick={capture.chooseWindow}><Monitor size={17} /> Escolher janela</button>
+                onClick={capture.chooseWindow}><Monitor size={17} /> Escolher janela ou tela</button>
               {capture.stream && <button type="button" className="mode-button" onClick={capture.stop}>
                 <Square size={16} /> Encerrar transmissão
               </button>}
